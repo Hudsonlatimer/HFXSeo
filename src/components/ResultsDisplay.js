@@ -103,7 +103,7 @@ export default function ResultsDisplay({ data }) {
         <ScoreRing
           value={d}
           label="Desktop performance"
-          sub={d == null ? 'Not returned (timeout or error)' : 'Lab, wired profile'}
+          sub={d == null ? 'Not returned in this run' : 'Lab, wired profile'}
         />
       </div>
 

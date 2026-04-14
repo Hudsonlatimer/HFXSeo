@@ -5,6 +5,7 @@ export const maxDuration = 60;
 const PLACEHOLDER_KEY = 'your_google_pagespeed_api_key_here';
 const PARALLEL_PSI_MS = 28000;
 const MAX_URL_LENGTH = 2048;
+const PAGESPEED_FETCH_TIMEOUT = '__pagespeed_fetch_timeout__';
 
 function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -28,19 +29,54 @@ function isDailyQuotaExceeded(msg) {
   );
 }
 
-function humanizePsiError(msg) {
-  if (!msg || typeof msg !== 'string') return msg;
+function logAuditDetail(msg) {
+  if (!msg || typeof msg !== 'string') return;
+  const clipped = msg.length > 1800 ? `${msg.slice(0, 1800)}…` : msg;
+  console.error('[analyze]', clipped);
+}
+
+function clientSafeAuditError(rawMsg) {
+  const msg = typeof rawMsg === 'string' ? rawMsg : '';
+  if (msg && msg !== PAGESPEED_FETCH_TIMEOUT) {
+    logAuditDetail(msg);
+  } else if (msg === PAGESPEED_FETCH_TIMEOUT) {
+    console.error('[analyze]', 'pagespeed fetch aborted (timeout)');
+  }
+  if (msg === PAGESPEED_FETCH_TIMEOUT) {
+    return 'The PageSpeed check took too long. Try again in a moment, or try a lighter page.';
+  }
   if (isDailyQuotaExceeded(msg)) {
-    return (
-      'Google PageSpeed daily quota for this API key is exhausted (each audit uses two API requests: mobile and desktop). ' +
-      'The limit usually resets at midnight Pacific. In Google Cloud Console open APIs & Services, select PageSpeed Insights API, ' +
-      'then Quotas to raise the cap or enable billing; you can also use a new API key from another project.'
-    );
+    return 'Too many audits were run recently. Please try again later.';
   }
-  if (msg.includes('Lighthouse returned error:')) {
-    return `${msg} This often clears on a second try, or when using a PageSpeed API key for quota.`;
+  const m = msg.toLowerCase();
+  if (m.includes('api key') || m.includes('apikey') || m.includes('invalid key')) {
+    return 'The audit service is temporarily unavailable. Please try again later.';
   }
-  return msg;
+  if (m.includes('lighthouse returned error')) {
+    return 'Google’s Lighthouse run did not finish for this URL. Try again in a minute, or confirm the page loads in a normal browser.';
+  }
+  if (m.includes('something went wrong')) {
+    return 'Google’s PageSpeed service had a brief issue. Try again shortly.';
+  }
+  if (
+    m.includes('permission denied') ||
+    m.includes('forbidden') ||
+    m.includes('not authorized') ||
+    /\b401\b/.test(m) ||
+    /\b403\b/.test(m)
+  ) {
+    return 'The audit service could not complete that request. Please try again later.';
+  }
+  if (m.includes('could not complete the mobile audit')) {
+    return 'The mobile audit did not finish. Please try again.';
+  }
+  if (m.includes('pagespeed request failed')) {
+    return 'The PageSpeed service returned an error. Please try again.';
+  }
+  if (m.includes('unexpected pagespeed response')) {
+    return 'The audit service received an incomplete response. Please try again.';
+  }
+  return 'The audit could not be completed. Please try again.';
 }
 
 function isRetryablePsiMessage(msg) {
@@ -185,9 +221,7 @@ async function fetchPagespeedJson(targetUrl, strategy, apiKey, timeoutMs) {
     return body;
   } catch (err) {
     if (err?.name === 'AbortError') {
-      throw new Error(
-        'Google PageSpeed timed out. Try again, use a simpler URL, or set PAGESPEED_API_KEY in .env.local for more reliable quota.',
-      );
+      throw new Error(PAGESPEED_FETCH_TIMEOUT);
     }
     throw err;
   } finally {
@@ -410,7 +444,7 @@ export async function POST(req) {
         mobileSettled.reason?.message ||
         'Google PageSpeed could not complete the mobile audit.';
       const status = isDailyQuotaExceeded(msg) ? 429 : 504;
-      return NextResponse.json({ error: humanizePsiError(msg) }, { status });
+      return NextResponse.json({ error: clientSafeAuditError(msg) }, { status });
     }
 
     const mobileData = mobileSettled.value;
@@ -419,7 +453,10 @@ export async function POST(req) {
 
     const mobileParsed = parseLighthouseBundle(mobileData);
     if (!mobileParsed) {
-      return NextResponse.json({ error: 'Unexpected PageSpeed response shape.' }, { status: 502 });
+      return NextResponse.json(
+        { error: 'The audit service received an incomplete response. Please try again.' },
+        { status: 502 },
+      );
     }
 
     const desktopParsed = desktopData ? parseLighthouseBundle(desktopData) : null;
@@ -483,10 +520,10 @@ Two sentences only, separated by ". " (period then space). Sentence one: mobile 
       aiSummary,
     });
   } catch (err) {
-    const message =
-      err instanceof Error && err.message
-        ? err.message
-        : 'Something went wrong. Try again shortly.';
-    return NextResponse.json({ error: humanizePsiError(message) }, { status: 500 });
+    const message = err instanceof Error && err.message ? err.message : '';
+    if (!message) {
+      logAuditDetail(String(err));
+    }
+    return NextResponse.json({ error: clientSafeAuditError(message) }, { status: 500 });
   }
 }
