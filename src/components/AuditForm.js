@@ -12,6 +12,7 @@ const STATUS_LABELS = [
 
 export default function AuditForm({ onResult }) {
   const [url, setUrl] = useState('');
+  const [aiAnalysis, setAiAnalysis] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [statusText, setStatusText] = useState('');
@@ -49,7 +50,7 @@ export default function AuditForm({ onResult }) {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: formattedUrl }),
+        body: JSON.stringify({ url: formattedUrl, aiAnalysis }),
       });
 
       const contentType = res.headers.get('content-type');
@@ -89,9 +90,34 @@ export default function AuditForm({ onResult }) {
             </h2>
           </div>
           <p className="max-w-xl text-xs leading-relaxed text-zinc-600 sm:max-w-xs sm:text-right">
-            Usually 25–45 seconds while Google runs mobile and desktop Lighthouse. Optional short
-            summary when configured server-side.
+            Usually 25–45 seconds while Google runs mobile and desktop Lighthouse. Turn off the AI
+            summary below to skip the extra model request when the server is configured for it.
           </p>
+        </div>
+
+        <div className="mb-6 flex flex-col gap-3 rounded-md border border-white/[0.08] bg-white/[0.02] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-zinc-200">AI strategic summary</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-zinc-600">
+              Two-sentence Hugging Face summary when enabled and a token is set; otherwise the
+              built-in summary from your scores.
+            </p>
+          </div>
+          <label className="inline-flex cursor-pointer select-none items-center gap-3 self-start sm:self-center">
+            <span className="mono-label text-[10px] text-zinc-500">{aiAnalysis ? 'On' : 'Off'}</span>
+            <input
+              id="audit-ai-toggle"
+              type="checkbox"
+              checked={aiAnalysis}
+              onChange={(e) => setAiAnalysis(e.target.checked)}
+              className="peer sr-only"
+              aria-label="Enable AI strategic summary"
+            />
+            <span
+              className="relative h-7 w-12 shrink-0 rounded-full border border-white/10 bg-zinc-800 shadow-inner transition-colors after:absolute after:left-0.5 after:top-0.5 after:block after:h-6 after:w-6 after:translate-x-0 after:rounded-full after:bg-white after:shadow after:transition-transform after:content-[''] peer-checked:border-white/15 peer-checked:bg-zinc-200 peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-zinc-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[#121214]"
+              aria-hidden
+            />
+          </label>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 md:flex-row md:items-stretch">

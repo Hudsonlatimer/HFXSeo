@@ -359,7 +359,13 @@ async function tryHuggingFaceSummary(prompt, token) {
 
 export async function POST(req) {
   try {
-    const { url } = await req.json();
+    const raw = await req.json().catch(() => null);
+    if (!raw || typeof raw !== 'object') {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+    const { url, aiAnalysis } = raw;
+    const wantAi =
+      aiAnalysis !== false && aiAnalysis !== 'false' && String(aiAnalysis).toLowerCase() !== '0';
     if (!url || typeof url !== 'string') {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
@@ -442,7 +448,9 @@ export async function POST(req) {
       lcp: mobileParsed.vitals.lcp,
     });
 
-    const hfPrompt = `Hostname ${host} (do not output the word "Website:" or a label—write sentences only).
+    let hfRaw = null;
+    if (wantAi) {
+      const hfPrompt = `Hostname ${host} (do not output the word "Website:" or a label—write sentences only).
 Mobile score 0-100: ${scores.mobile}
 Desktop score 0-100: ${scores.desktop ?? 'not available'}
 SEO category 0-100: ${scores.seo}
@@ -452,8 +460,8 @@ Performance opportunity titles: ${perfTitles.slice(0, 5).join('; ') || 'none'}
 SEO audit failures (titles): ${seoTitles.slice(0, 5).join('; ') || 'none'}
 
 Two sentences only, separated by ". " (period then space). Sentence one: mobile and desktop scores. Sentence two: include the LCP string exactly as given and name one opportunity title using its exact wording. If opportunity list is "none", sentence two is only LCP plus best-practices note.`;
-
-    const hfRaw = await tryHuggingFaceSummary(hfPrompt, hfToken);
+      hfRaw = await tryHuggingFaceSummary(hfPrompt, hfToken);
+    }
     const useHf =
       hfRaw &&
       !hfSummaryUnusable(hfRaw, {
