@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-eb-garamond), ui-serif, Georgia, serif;
+  --color-hfx-bg: #0a0a0b;
+  --color-hfx-surface: #121214;
+  --color-hfx-elevated: #18181a;
+  --color-hfx-border: rgba(255, 255, 255, 0.06);
+  --color-hfx-muted: #71717a;
+  --color-hfx-accent: #d4d4d8;
+  --color-hfx-accent-dim: #52525b;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-hfx-bg);
+    color: #e4e4e7;
+    font-family: var(--font-sans);
+    @apply antialiased overflow-x-hidden min-h-screen;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: rgba(161, 161, 170, 0.35);
+    color: #fafafa;
+  }
+}
+
+.mesh-bg {
+  background-color: var(--color-hfx-bg);
+  background-image: radial-gradient(
+    ellipse 100% 60% at 50% -15%,
+    rgba(255, 255, 255, 0.04),
+    transparent 50%
+  );
+}
+
+.grid-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+.mono-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #71717a;
+  font-weight: 600;
+}
+
+.glass-card {
+  background: linear-gradient(160deg, rgba(24, 24, 27, 0.92) 0%, rgba(18, 18, 20, 0.88) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 20px 60px -28px rgba(0, 0, 0, 0.55);
+}
+
+.glow-ring {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 12px 40px -20px rgba(0, 0, 0, 0.4);
+}
+
+.text-gradient {
+  background: linear-gradient(105deg, #fafafa 0%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.serif-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.surface-panel {
+  background: linear-gradient(180deg, rgba(24, 24, 27, 0.95) 0%, rgba(18, 18, 20, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0b;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}

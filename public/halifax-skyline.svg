@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 400" fill="none">
+  <!-- Halifax Waterfront Skyline Silhouette -->
+  <g fill="#d4d4d4" opacity="1">
+    <!-- Water / harbor base -->
+    <rect x="0" y="340" width="1400" height="60" rx="0" fill="#e7e5e4"/>
+
+    <!-- Distant treeline / hills (Point Pleasant area) -->
+    <path d="M0 320 Q50 290 100 300 Q150 280 200 295 Q250 275 300 290 Q320 282 340 288 L340 340 L0 340Z"/>
+
+    <!-- Far left waterfront buildings -->
+    <rect x="60" y="260" width="28" height="80" rx="1"/>
+    <rect x="95" y="240" width="22" height="100" rx="1"/>
+    <rect x="122" y="270" width="30" height="70" rx="1"/>
+
+    <!-- Purdy's Wharf / Downtown towers -->
+    <rect x="200" y="180" width="35" height="160" rx="2"/>
+    <rect x="240" y="200" width="30" height="140" rx="2"/>
+    <rect x="275" y="160" width="38" height="180" rx="2"/>
+    <rect x="318" y="190" width="32" height="150" rx="2"/>
+
+    <!-- Halifax Town Clock (Citadel Hill) - iconic landmark -->
+    <g transform="translate(420, 0)">
+      <!-- Clock tower base -->
+      <rect x="0" y="220" width="50" height="120" rx="2"/>
+      <!-- Tower middle section -->
+      <rect x="8" y="170" width="34" height="55" rx="1"/>
+      <!-- Clock face area -->
+      <rect x="12" y="140" width="26" height="35" rx="13"/>
+      <!-- Spire -->
+      <polygon points="25,90 18,140 32,140"/>
+      <!-- Spire tip -->
+      <rect x="23" y="82" width="4" height="12"/>
+      <circle cx="25" cy="80" r="4"/>
+    </g>
+
+    <!-- Mid-downtown buildings -->
+    <rect x="500" y="210" width="40" height="130" rx="2"/>
+    <rect x="545" y="230" width="28" height="110" rx="1"/>
+    <rect x="578" y="195" width="45" height="145" rx="2"/>
+    <rect x="628" y="215" width="32" height="125" rx="1"/>
+
+    <!-- Convention Centre / Library area -->
+    <rect x="690" y="250" width="60" height="90" rx="2"/>
+    <rect x="690" y="245" width="60" height="8" rx="1"/>
+    <rect x="755" y="230" width="35" height="110" rx="1"/>
+
+    <!-- Casino / waterfront hotel area -->
+    <rect x="820" y="200" width="42" height="140" rx="2"/>
+    <rect x="820" y="195" width="42" height="8" rx="1"/>
+    <rect x="868" y="220" width="36" height="120" rx="2"/>
+    <rect x="910" y="240" width="28" height="100" rx="1"/>
+
+    <!-- Macdonald Bridge -->
+    <g transform="translate(960, 0)">
+      <!-- Bridge towers -->
+      <rect x="40" y="140" width="12" height="200" rx="1"/>
+      <rect x="280" y="140" width="12" height="200" rx="1"/>
+      <!-- Bridge deck -->
+      <rect x="0" y="300" width="340" height="8" rx="1"/>
+      <!-- Suspension cables - main catenary -->
+      <path d="M46 145 Q170 260 286 145" stroke="#d4d4d4" stroke-width="3" fill="none"/>
+      <!-- Vertical suspender cables -->
+      <line x1="90" y1="195" x2="90" y2="300" stroke="#d4d4d4" stroke-width="1.5"/>
+      <line x1="130" y1="225" x2="130" y2="300" stroke="#d4d4d4" stroke-width="1.5"/>
+      <line x1="170" y1="240" x2="170" y2="300" stroke="#d4d4d4" stroke-width="1.5"/>
+      <line x1="210" y1="225" x2="210" y2="300" stroke="#d4d4d4" stroke-width="1.5"/>
+      <line x1="250" y1="195" x2="250" y2="300" stroke="#d4d4d4" stroke-width="1.5"/>
+    </g>
+
+    <!-- Dartmouth side buildings (far right) -->
+    <rect x="1320" y="260" width="25" height="80" rx="1"/>
+    <rect x="1350" y="275" width="30" height="65" rx="1"/>
+    <rect x="1385" y="270" width="20" height="70" rx="1"/>
+
+    <!-- Small boats / harbor detail -->
+    <ellipse cx="380" cy="355" rx="15" ry="4"/>
+    <line x1="380" y1="345" x2="380" y2="355" stroke="#d4d4d4" stroke-width="1.5"/>
+    <ellipse cx="650" cy="360" rx="12" ry="3"/>
+    <line x1="650" y1="352" x2="650" y2="360" stroke="#d4d4d4" stroke-width="1.5"/>
+
+    <!-- Waterfront boardwalk line -->
+    <rect x="50" y="336" width="900" height="3" rx="1" opacity="0.5"/>
+  </g>
+</svg>
