@@ -17,8 +17,26 @@ function extractPsiHttpError(body) {
   return e.message || fromList || null;
 }
 
+function isDailyQuotaExceeded(msg) {
+  if (!msg || typeof msg !== 'string') return false;
+  const m = msg.toLowerCase();
+  return (
+    m.includes('quota exceeded') ||
+    m.includes('queries per day') ||
+    m.includes('resource_exhausted') ||
+    (m.includes('quota') && m.includes('per day'))
+  );
+}
+
 function humanizePsiError(msg) {
   if (!msg || typeof msg !== 'string') return msg;
+  if (isDailyQuotaExceeded(msg)) {
+    return (
+      'Google PageSpeed daily quota for this API key is exhausted (each audit uses two API requests: mobile and desktop). ' +
+      'The limit usually resets at midnight Pacific. In Google Cloud Console open APIs & Services, select PageSpeed Insights API, ' +
+      'then Quotas to raise the cap or enable billing; you can also use a new API key from another project.'
+    );
+  }
   if (msg.includes('Lighthouse returned error:')) {
     return `${msg} This often clears on a second try, or when using a PageSpeed API key for quota.`;
   }
@@ -34,7 +52,7 @@ function isRetryablePsiMessage(msg) {
     m.includes('timeout') ||
     m.includes('temporar') ||
     m.includes(' rate ') ||
-    m.includes('quota') ||
+    (m.includes('quota') && !isDailyQuotaExceeded(msg)) ||
     m.includes('503') ||
     m.includes('502') ||
     m.includes('500') ||
@@ -375,7 +393,7 @@ export async function POST(req) {
 
     if (mobileSettled.status === 'rejected') {
       const firstMsg = mobileSettled.reason?.message || '';
-      if (isRetryablePsiMessage(firstMsg)) {
+      if (isRetryablePsiMessage(firstMsg) && !isDailyQuotaExceeded(firstMsg)) {
         await delay(2200);
         [mobileSettled, desktopSettled] = await runParallelPsi(normalized, apiKey);
       }
@@ -385,7 +403,8 @@ export async function POST(req) {
       const msg =
         mobileSettled.reason?.message ||
         'Google PageSpeed could not complete the mobile audit.';
-      return NextResponse.json({ error: humanizePsiError(msg) }, { status: 504 });
+      const status = isDailyQuotaExceeded(msg) ? 429 : 504;
+      return NextResponse.json({ error: humanizePsiError(msg) }, { status });
     }
 
     const mobileData = mobileSettled.value;

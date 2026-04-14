@@ -30,10 +30,9 @@ cp .env.example .env.local
 
 ### Rate limits
 
-- Without an API key: 1-2 requests per second (shared quota, unreliable)
-- With an API key: 25,000 queries per day (free tier)
-
-For a small-traffic tool, the free tier is more than sufficient.
+- Without an API key: shared public quota only (thin and unreliable for production).
+- With an API key: Google assigns a **per-project** daily cap on PageSpeed Insights **queries**. This app runs **two queries per audit** (mobile and desktop in parallel), so usable audits per day are roughly half the query cap.
+- If you see errors mentioning **quota** or **Queries per day**, the key’s project has hit that cap. Fixes: wait for the daily reset (often midnight **Pacific**), create a **new API key in another GCP project** with the API enabled, or in [Google Cloud Console](https://console.cloud.google.com/) open **APIs & Services** → **PageSpeed Insights API** → **Quotas** to request a higher limit or attach billing if your organization allows it.
 
 ---
 
