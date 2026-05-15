@@ -20,7 +20,7 @@ export default function Home() {
   };
 
   return (
-    <main className="mesh-bg grid-noise min-h-screen selection:bg-zinc-600/35 selection:text-white">
+    <main className="min-h-screen">
       <a
         href="#audit-form"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-zinc-100 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-zinc-900"
@@ -29,58 +29,36 @@ export default function Home() {
       </a>
 
       <nav
-        className="fixed top-0 z-50 flex w-full items-center justify-between border-b border-white/[0.06] bg-[#0a0a0b]/80 px-[max(1rem,env(safe-area-inset-left))] py-3 pr-[max(1rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl md:px-10 md:py-4"
+        className="fixed top-0 z-50 flex w-full items-center justify-between border-b border-white/[0.06] bg-[#0a0a0b]/80 px-4 py-3 backdrop-blur-md sm:px-6 md:px-10 md:py-4"
         aria-label="Main navigation"
       >
         <Link
           href="/"
-          className="inline-flex min-h-11 min-w-11 items-center justify-center text-lg font-semibold tracking-tight text-white"
+          className="text-lg font-semibold tracking-tight text-white"
           aria-label="HFX SEO home"
         >
-          <span className="whitespace-nowrap">
-            HFX <span className="text-zinc-400">SEO</span>
-          </span>
+          HFX <span className="text-zinc-400">SEO</span>
         </Link>
-        <div className="flex items-center gap-3 sm:gap-6 md:gap-10">
+        <div className="flex items-center gap-4 sm:gap-6 md:gap-10">
           <div className="hidden items-center gap-8 md:flex">
+            <a href="#about" className="text-xs text-zinc-500 transition-colors hover:text-zinc-300">About</a>
+            <a href="#faq" className="text-xs text-zinc-500 transition-colors hover:text-zinc-300">FAQ</a>
             <a
-              href="https://huddydev.ca"
+              href="https://hudsonlatimer.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="mono-label text-[10px] text-zinc-500 transition-colors hover:text-zinc-300"
+              className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
             >
               Portfolio
             </a>
-            <a
-              href="https://services.huddydev.ca"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mono-label text-[10px] text-zinc-500 transition-colors hover:text-zinc-300"
-            >
-              Services
-            </a>
           </div>
-          <div className="flex items-center gap-2 sm:hidden">
-            <a
-              href="https://huddydev.ca"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mono-label inline-flex min-h-11 min-w-11 items-center justify-center text-center text-[9px] text-zinc-500"
-            >
-              Work
-            </a>
-            <a
-              href="https://services.huddydev.ca"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mono-label inline-flex min-h-11 min-w-11 items-center justify-center text-center text-[9px] text-zinc-500"
-            >
-              Hire
-            </a>
+          <div className="flex items-center gap-1 sm:hidden">
+            <a href="#about" className="px-2 py-2 text-xs text-zinc-500">About</a>
+            <a href="#faq" className="px-2 py-2 text-xs text-zinc-500">FAQ</a>
           </div>
           <a
             href="#contact"
-            className="mono-label flex min-h-11 items-center rounded-md border border-white/10 bg-white/[0.04] px-4 text-[10px] font-semibold text-zinc-200 transition-colors hover:border-white/15 hover:bg-white/[0.07]"
+            className="rounded-md border border-white/10 px-4 py-2 text-xs font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.05]"
           >
             Contact
           </a>
@@ -108,28 +86,28 @@ export default function Home() {
       <BusinessFAQ />
       <ContactSection />
 
-      <footer className="border-t border-white/[0.06] bg-[#0a0a0b]/90 py-16 pb-[max(4rem,env(safe-area-inset-bottom))] text-center">
-        <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-[max(1.5rem,env(safe-area-inset-left))] pr-[max(1.5rem,env(safe-area-inset-right))]">
-          <div className="flex flex-wrap justify-center gap-8">
+      <footer className="border-t border-white/[0.06] py-12 text-center">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 px-6">
+          <div className="flex gap-6">
             <a
-              href="https://huddydev.ca"
+              href="https://hudsonlatimer.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="mono-label text-[10px] text-zinc-600 hover:text-zinc-400"
+              className="text-xs text-zinc-600 hover:text-zinc-400"
             >
-              huddydev.ca
+              hudsonlatimer.com
             </a>
             <a
-              href="https://services.huddydev.ca"
+              href="https://hudsonlatimer.com/#services"
               target="_blank"
               rel="noopener noreferrer"
-              className="mono-label text-[10px] text-zinc-600 hover:text-zinc-400"
+              className="text-xs text-zinc-600 hover:text-zinc-400"
             >
-              services.huddydev.ca
+              Services
             </a>
           </div>
-          <p className="mono-label max-w-md text-[10px] leading-relaxed text-zinc-600">
-            © {new Date().getFullYear()} HFX SEO Audit · Hudson Latimer
+          <p className="text-xs text-zinc-600">
+            © {new Date().getFullYear()} HFX SEO Audit · Hudson Latimer · AI summaries powered by Claude
           </p>
         </div>
       </footer>

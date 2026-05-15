@@ -1,13 +1,8 @@
-import { Inter, EB_Garamond } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const ebGaramond = EB_Garamond({
-  variable: "--font-eb-garamond",
   subsets: ["latin"],
 });
 
@@ -49,7 +44,7 @@ export const metadata = {
   description:
     "Free instant SEO and PageSpeed audit for Halifax, Dartmouth, Bedford, and HRM businesses. Lighthouse mobile + desktop scores, Core Web Vitals, screenshots, and prioritized fixes. Built for Nova Scotia operators.",
   keywords,
-  authors: [{ name: "Hudson Latimer", url: "https://huddydev.ca" }],
+  authors: [{ name: "Hudson Latimer", url: "https://hudsonlatimer.com" }],
   creator: "Hudson Latimer",
   publisher: "HFX SEO Audit",
   category: "technology",
@@ -68,6 +63,7 @@ export const metadata = {
     title: "Free Halifax SEO Audit & Website Speed Test | HFX SEO",
     description:
       "Instant Lighthouse audit for Halifax-area sites — Core Web Vitals, SEO checks, prioritized fixes.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
@@ -113,7 +109,7 @@ const structuredDataGraph = {
       logo: `${siteUrl}/favicon.svg`,
       description:
         "Free Halifax and Nova Scotia website SEO and PageSpeed audit tool powered by Google Lighthouse.",
-      sameAs: ["https://huddydev.ca", "https://services.huddydev.ca"],
+      sameAs: ["https://hudsonlatimer.com", "https://hudsonlatimer.com/#services"],
       areaServed: [
         {
           "@type": "City",
@@ -169,7 +165,7 @@ const structuredDataGraph = {
       founder: {
         "@type": "Person",
         name: "Hudson Latimer",
-        url: "https://huddydev.ca",
+        url: "https://hudsonlatimer.com",
       },
       areaServed: [
         { "@type": "City", name: "Halifax" },
@@ -253,7 +249,7 @@ const structuredDataGraph = {
           name: "Is the Halifax SEO audit free for small businesses?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes. Running a URL audit on hfxseo.ca is free. Optional AI-generated summaries may use a configured Hugging Face token; core scores and issues do not require payment.",
+            text: "Yes. Running a URL audit on hfxseo.ca is completely free, including the AI-powered analysis. No sign-up or payment required.",
           },
         },
       ],
@@ -263,7 +259,7 @@ const structuredDataGraph = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en-CA" className={`${inter.variable} ${ebGaramond.variable} h-full antialiased`}>
+    <html lang="en-CA" className={`${inter.variable} h-full antialiased`}>
       <head>
         <script
           type="application/ld+json"

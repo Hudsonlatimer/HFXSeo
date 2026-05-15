@@ -1,3 +1,6 @@
+'use client';
+import { motion } from 'framer-motion';
+
 const faqs = [
   {
     q: 'Does site speed affect Google rankings in Halifax?',
@@ -21,29 +24,42 @@ const faqs = [
   },
   {
     q: 'Is the Halifax SEO audit free for small businesses?',
-    a: 'Yes. Running a URL audit on hfxseo.ca is free. Optional AI-generated summaries may use a configured Hugging Face token; core scores and issues do not require payment.',
+    a: 'Yes. Running a URL audit on hfxseo.ca is completely free, including the AI-powered analysis. No sign-up or payment required.',
   },
 ];
 
 export default function BusinessFAQ() {
   return (
     <section className="py-24 md:py-32" id="faq">
-      <div className="mx-auto max-w-6xl px-[max(1.5rem,env(safe-area-inset-left))] pr-[max(1.5rem,env(safe-area-inset-right))]">
-        <div className="mb-14 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <div className="mx-auto max-w-6xl px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6 }}
+          className="mb-14 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+        >
           <div>
-            <p className="mono-label mb-4 text-zinc-500">FAQ</p>
+            <p className="mb-4 text-xs uppercase tracking-wider text-zinc-500">FAQ</p>
             <h2 className="text-4xl font-light text-white md:text-5xl">Halifax SEO &amp; speed questions</h2>
           </div>
           <p className="max-w-md text-zinc-600">
             Answers for Nova Scotia business owners comparing local search and site performance.
           </p>
-        </div>
+        </motion.div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {faqs.map((faq) => (
-            <article key={faq.q} className="surface-panel flex flex-col p-8">
+          {faqs.map((faq, i) => (
+            <motion.article
+              key={faq.q}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ delay: i * 0.06, duration: 0.45 }}
+              className="flex flex-col rounded-lg border border-white/[0.08] bg-[#111] p-8"
+            >
               <h3 className="mb-4 text-lg font-light leading-snug text-zinc-100">{faq.q}</h3>
               <p className="text-sm leading-relaxed text-zinc-500">{faq.a}</p>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>

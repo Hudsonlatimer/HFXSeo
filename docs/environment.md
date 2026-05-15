@@ -31,38 +31,33 @@ cp .env.example .env.local
 ### Rate limits
 
 - Without an API key: shared public quota only (thin and unreliable for production).
-- With an API key: Google assigns a **per-project** daily cap on PageSpeed Insights **queries**. This app runs **two queries per audit** (mobile and desktop in parallel), so usable audits per day are roughly half the query cap.
-- If you see errors mentioning **quota** or **Queries per day**, the key’s project has hit that cap. Fixes: wait for the daily reset (often midnight **Pacific**), create a **new API key in another GCP project** with the API enabled, or in [Google Cloud Console](https://console.cloud.google.com/) open **APIs & Services** → **PageSpeed Insights API** → **Quotas** to request a higher limit or attach billing if your organization allows it.
-- In production, visitors only see short generic errors; full upstream messages are written to **Netlify function logs** (`[analyze]`) for operators.
+- With an API key: Google assigns a **per-project** daily cap. This app runs **two queries per audit** (mobile + desktop), so usable audits per day are roughly half the query cap.
+- If you see quota errors: wait for daily reset (midnight Pacific), create a new key in another GCP project, or request a higher limit in Cloud Console.
 
 ---
 
-## HUGGING_FACE_API_KEY
+## ANTHROPIC_API_KEY
 
-**Optional.** Used to generate AI-powered strategic summaries for each audit via the Hugging Face Inference API (Mistral 7B Instruct).
+**Optional.** Used to generate AI-powered strategic summaries via Claude Haiku 4.5 (cheapest Claude model).
 
 ### How to get one
 
-1. Create a free account at [huggingface.co](https://huggingface.co/)
-2. Go to Settings > Access Tokens
-3. Create a new token with "Read" permissions
-4. Copy the token into your `.env.local`
+1. Create an account at [console.anthropic.com](https://console.anthropic.com/)
+2. Go to Settings > API Keys
+3. Create a new key
+4. Copy it into your `.env.local`
 
 ### Fallback behavior
 
-If this key is missing or the API call fails, the app generates a templated summary using the audit scores. The user experience is still complete -- the AI summary is a value-add, not a requirement.
+If this key is missing or the API call fails, the app generates a templated summary from the audit scores. The user experience is still complete — the AI summary is a value-add, not a requirement.
 
-### Rate limits
+### Cost
 
-- Free tier: approximately 1,000 requests per month
-- Requests are kept lightweight (120 max tokens per call)
+- Claude Haiku 4.5: $0.80/MTok input, $4/MTok output
+- Each audit uses ~300 input tokens + ~100 output tokens ≈ $0.0006 per audit
 
 ---
 
 ## Production (Netlify)
 
-When deploying to Netlify, set these same variables in:
-
-**Site Settings > Environment Variables**
-
-Do not use the `.env.local` file in production. Netlify injects environment variables at build time and into serverless functions automatically.
+Set these variables in **Site Settings > Environment Variables**. Do not use `.env.local` in production.
