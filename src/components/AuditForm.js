@@ -3,13 +3,13 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, AlertCircle, Search, Sparkles, Clock, X } from 'lucide-react';
 
-const STATUS_STEPS = [
+const BASE_STEPS = [
   'Reaching Google PageSpeed…',
   'Running Lighthouse on mobile…',
   'Running Lighthouse on desktop…',
   'Measuring Core Web Vitals…',
-  'Writing your AI action plan…',
 ];
+const AI_STEP = 'Writing your AI action plan…';
 
 const EXAMPLES = ['stackoverflow.com', 'vercel.com', 'cbc.ca', 'dal.ca'];
 const HISTORY_KEY = 'hfxseo:recent';
@@ -31,6 +31,8 @@ export default function AuditForm({ onResult }) {
   const [history, setHistory] = useState([]);
   const inputRef = useRef(null);
 
+  const steps = aiAnalysis ? [...BASE_STEPS, AI_STEP] : BASE_STEPS;
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
@@ -41,16 +43,17 @@ export default function AuditForm({ onResult }) {
   }, []);
 
   useEffect(() => {
-    if (!loading) return;
+    if (!loading) return undefined;
+    const maxStep = (aiAnalysis ? BASE_STEPS.length + 1 : BASE_STEPS.length) - 1;
     setStep(0);
     setProgress(8);
-    const stepTimer = setInterval(() => setStep((s) => Math.min(s + 1, STATUS_STEPS.length - 1)), 4200);
+    const stepTimer = setInterval(() => setStep((s) => Math.min(s + 1, maxStep)), 4200);
     const progTimer = setInterval(() => setProgress((p) => (p < 92 ? p + Math.random() * 6 : p)), 600);
     return () => {
       clearInterval(stepTimer);
       clearInterval(progTimer);
     };
-  }, [loading]);
+  }, [loading, aiAnalysis]);
 
   const saveHistory = (host) => {
     try {
@@ -215,7 +218,7 @@ export default function AuditForm({ onResult }) {
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.25 }}
                   >
-                    {STATUS_STEPS[step]}
+                    {steps[Math.min(step, steps.length - 1)]}
                   </motion.span>
                 </AnimatePresence>
               </div>

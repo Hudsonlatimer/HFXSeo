@@ -425,10 +425,15 @@ export async function POST(req) {
       a11yTitles: a11yIssues.map((i) => i.title),
     };
 
-    let ai = templateAnalysis(aiCtx);
-    if (wantAi && groqKey) {
-      const groqResult = await groqAnalysis(aiCtx, groqKey);
-      if (groqResult) ai = groqResult;
+    // When the AI toggle is off, skip analysis entirely — no Groq call, no
+    // heuristic summary. The response carries no `ai` field at all.
+    let ai = null;
+    if (wantAi) {
+      ai = templateAnalysis(aiCtx);
+      if (groqKey) {
+        const groqResult = await groqAnalysis(aiCtx, groqKey);
+        if (groqResult) ai = groqResult;
+      }
     }
 
     return NextResponse.json({
@@ -447,7 +452,7 @@ export async function POST(req) {
       meta: {
         analyzedAt: new Date().toISOString(),
         durationMs: Date.now() - startedAt,
-        aiSource: ai.source,
+        aiSource: ai ? ai.source : 'disabled',
       },
     });
   } catch (err) {
