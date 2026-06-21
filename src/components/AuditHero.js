@@ -62,7 +62,7 @@ export default function AuditHero() {
           transition={{ duration: 0.7, delay: 0.25 }}
           className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg"
         >
-          A free, instant SEO &amp; speed audit for Nova Scotia businesses, from{' '}
+          A free, instant SEO &amp; speed audit for Nova Scotia businesses, by Hudson Latimer at{' '}
           <a href="https://huddydigital.ca" target="_blank" rel="noopener noreferrer" className="font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
             Huddy Digital
           </a>

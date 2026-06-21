@@ -160,8 +160,8 @@ export default function ResultsDisplay({ data }) {
       >
         <h3 className="mb-3 text-2xl font-semibold text-white sm:text-3xl">Want these fixed for you?</h3>
         <p className="mx-auto mb-8 max-w-xl text-zinc-400">
-          Huddy Digital helps Halifax &amp; Nova Scotia businesses turn these scores into faster
-          sites and more leads.
+          I&apos;m Hudson Latimer — through Huddy Digital I help Halifax &amp; Nova Scotia businesses
+          turn these scores into faster sites and more leads.
         </p>
         <a
           href="https://huddydigital.ca"

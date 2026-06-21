@@ -78,7 +78,7 @@ export default function Home() {
           <div className="container-app flex flex-col items-center gap-5 text-center">
             <div className="text-sm font-bold text-white">HFX SEO</div>
             <p className="max-w-md text-sm text-zinc-400">
-              A free tool by{' '}
+              A free tool by Hudson Latimer at{' '}
               <a href="https://huddydigital.ca" target="_blank" rel="noopener noreferrer" className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
                 Huddy Digital
               </a>{' '}
@@ -90,7 +90,7 @@ export default function Home() {
               <a href="https://github.com/Hudsonlatimer/HFXSeo" target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300">GitHub</a>
             </div>
             <p className="text-xs text-zinc-600">
-              © {new Date().getFullYear()} HFX SEO Audit · Built by Huddy Digital · Lighthouse data via Google · AI by Groq
+              © {new Date().getFullYear()} HFX SEO Audit · Built by Hudson Latimer · Huddy Digital · Lighthouse data via Google · AI by Groq
             </p>
           </div>
         </footer>

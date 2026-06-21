@@ -25,17 +25,17 @@ export default function HuddyPromo() {
           <div className="relative grid gap-12 lg:grid-cols-2 lg:items-center">
             <div>
               <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-xs font-medium text-zinc-300">
-                Built by Huddy Digital
+                Hudson Latimer · Huddy Digital
               </p>
               <h2 className="mb-5 text-3xl font-semibold leading-tight tracking-tight text-white md:text-5xl">
                 This audit is free.
                 <br />
-                <span className="text-gradient">Fixing it is what we do.</span>
+                <span className="text-gradient">Fixing it is what I do.</span>
               </h2>
               <p className="mb-8 max-w-md text-lg leading-relaxed text-zinc-400">
-                Huddy Digital builds fast, high-ranking websites for Halifax &amp; Nova Scotia
-                businesses. We don&apos;t just hand you a report — we turn it into more calls, more
-                bookings, and more revenue.
+                I&apos;m Hudson Latimer — through Huddy Digital I build fast, high-ranking websites
+                for Halifax &amp; Nova Scotia businesses. I don&apos;t just hand you a report — I
+                turn it into more calls, more bookings, and more revenue.
               </p>
               <div className="flex flex-wrap items-center gap-4">
                 <a
@@ -52,7 +52,7 @@ export default function HuddyPromo() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-6 py-4 text-sm font-medium text-zinc-200 transition-colors hover:border-white/30 hover:bg-white/[0.04]"
                 >
-                  See our services
+                  See my services
                 </a>
               </div>
             </div>
