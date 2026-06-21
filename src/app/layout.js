@@ -44,7 +44,7 @@ export const metadata = {
   description:
     "Free instant SEO and PageSpeed audit for Halifax, Dartmouth, Bedford, and HRM businesses. Lighthouse mobile + desktop scores, Core Web Vitals, screenshots, and prioritized fixes. Built for Nova Scotia operators.",
   keywords,
-  authors: [{ name: "Hudson Latimer", url: "https://hudsonlatimer.com" }],
+  authors: [{ name: "Hudson Latimer", url: "https://huddydigital.ca" }],
   creator: "Hudson Latimer",
   publisher: "HFX SEO Audit",
   category: "technology",
@@ -109,7 +109,7 @@ const structuredDataGraph = {
       logo: `${siteUrl}/favicon.svg`,
       description:
         "Free Halifax and Nova Scotia website SEO and PageSpeed audit tool powered by Google Lighthouse.",
-      sameAs: ["https://hudsonlatimer.com", "https://hudsonlatimer.com/#services"],
+      sameAs: ["https://huddydigital.ca", "https://huddydigital.ca/#services"],
       areaServed: [
         {
           "@type": "City",
@@ -165,7 +165,7 @@ const structuredDataGraph = {
       founder: {
         "@type": "Person",
         name: "Hudson Latimer",
-        url: "https://hudsonlatimer.com",
+        url: "https://huddydigital.ca",
       },
       areaServed: [
         { "@type": "City", name: "Halifax" },

@@ -160,16 +160,17 @@ export default function ResultsDisplay({ data }) {
       >
         <h3 className="mb-3 text-2xl font-semibold text-white sm:text-3xl">Want these fixed for you?</h3>
         <p className="mx-auto mb-8 max-w-xl text-zinc-400">
-          I help Halifax &amp; Nova Scotia businesses turn these scores into faster sites and more
-          leads. Send your URL and goals.
+          Huddy Digital helps Halifax &amp; Nova Scotia businesses turn these scores into faster
+          sites and more leads.
         </p>
-        <button
-          type="button"
-          onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+        <a
+          href="https://huddydigital.ca"
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-xl accent-gradient px-8 py-3.5 text-sm font-semibold text-zinc-950 transition-transform hover:-translate-y-0.5"
         >
           Get in touch <ArrowUpRight className="h-4 w-4" />
-        </button>
+        </a>
       </motion.div>
     </div>
   );

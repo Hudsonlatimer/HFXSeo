@@ -110,7 +110,7 @@ HFXSeo/
 ## Author
 
 **Hudson Latimer**
-- [hudsonlatimer.com](https://hudsonlatimer.com)
+- [huddydigital.ca](https://huddydigital.ca)
 
 ## License
 
