@@ -301,9 +301,9 @@ function Vitals({ vitals }) {
 
 function Issues({ perfList, seoList, a11yList }) {
   const groups = [
-    { id: 'performance', label: 'Performance', items: perfList, tone: 'text-amber-400', icon: Zap },
-    { id: 'seo', label: 'SEO', items: seoList, tone: 'text-sky-400', icon: Search },
-    { id: 'accessibility', label: 'Accessibility', items: a11yList, tone: 'text-violet-400', icon: Accessibility },
+    { id: 'performance', label: 'Performance', items: perfList, tone: 'text-zinc-200', icon: Zap },
+    { id: 'seo', label: 'SEO', items: seoList, tone: 'text-zinc-300', icon: Search },
+    { id: 'accessibility', label: 'Accessibility', items: a11yList, tone: 'text-zinc-400', icon: Accessibility },
   ];
   const [filter, setFilter] = useState('all');
   const total = perfList.length + seoList.length + a11yList.length;

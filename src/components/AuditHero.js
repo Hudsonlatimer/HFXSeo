@@ -62,8 +62,12 @@ export default function AuditHero() {
           transition={{ duration: 0.7, delay: 0.25 }}
           className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg"
         >
-          A free, instant SEO &amp; speed audit for Nova Scotia businesses. Real Google Lighthouse
-          scores, Core Web Vitals, screenshots, and an AI action plan — in about 30 seconds.
+          A free, instant SEO &amp; speed audit for Nova Scotia businesses, from{' '}
+          <a href="https://huddydigital.ca" target="_blank" rel="noopener noreferrer" className="font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
+            Huddy Digital
+          </a>
+          . Real Google Lighthouse scores, Core Web Vitals, screenshots, and an AI action plan — in
+          about 30 seconds.
         </motion.p>
 
         <motion.div

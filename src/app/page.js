@@ -7,6 +7,7 @@ import AuditForm from '@/components/AuditForm';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import AboutSection from '@/components/AboutSection';
 import BusinessFAQ from '@/components/BusinessFAQ';
+import HuddyPromo from '@/components/HuddyPromo';
 
 export default function Home() {
   const [result, setResult] = useState(null);
@@ -38,13 +39,15 @@ export default function Home() {
           <div className="hidden items-center gap-7 md:flex">
             <a href="#about" className="text-sm text-zinc-400 transition-colors hover:text-white">About</a>
             <a href="#faq" className="text-sm text-zinc-400 transition-colors hover:text-white">FAQ</a>
-            <a href="https://huddydigital.ca" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 transition-colors hover:text-white">Services</a>
+            <a href="#audit-form" className="text-sm text-zinc-400 transition-colors hover:text-white">Run audit</a>
           </div>
           <a
-            href="#audit-form"
+            href="https://huddydigital.ca"
+            target="_blank"
+            rel="noopener noreferrer"
             className="rounded-lg accent-gradient px-4 py-2 text-xs font-semibold text-zinc-950 transition-transform hover:-translate-y-0.5"
           >
-            Run audit
+            Hire Huddy Digital
           </a>
         </div>
       </nav>
@@ -68,18 +71,26 @@ export default function Home() {
         </AnimatePresence>
 
         <AboutSection />
+        <HuddyPromo />
         <BusinessFAQ />
 
-        <footer className="border-t border-white/[0.06] py-12">
-          <div className="container-app flex flex-col items-center gap-4 text-center">
+        <footer className="border-t border-white/[0.06] py-14">
+          <div className="container-app flex flex-col items-center gap-5 text-center">
             <div className="text-sm font-bold text-white">HFX SEO</div>
+            <p className="max-w-md text-sm text-zinc-400">
+              A free tool by{' '}
+              <a href="https://huddydigital.ca" target="_blank" rel="noopener noreferrer" className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
+                Huddy Digital
+              </a>{' '}
+              — web design, SEO &amp; performance for Halifax &amp; Nova Scotia businesses.
+            </p>
             <div className="flex gap-6">
               <a href="https://huddydigital.ca" target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300">huddydigital.ca</a>
               <a href="https://huddydigital.ca/#services" target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300">Services</a>
               <a href="https://github.com/Hudsonlatimer/HFXSeo" target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300">GitHub</a>
             </div>
             <p className="text-xs text-zinc-600">
-              © {new Date().getFullYear()} HFX SEO Audit · Hudson Latimer · Lighthouse data via Google · AI by Groq
+              © {new Date().getFullYear()} HFX SEO Audit · Built by Huddy Digital · Lighthouse data via Google · AI by Groq
             </p>
           </div>
         </footer>
