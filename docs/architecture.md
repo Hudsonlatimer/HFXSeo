@@ -6,86 +6,74 @@ This document explains how the HFX SEO Audit tool works internally.
 
 ## Overview
 
-The app is a single-page Next.js application. The user enters a URL, the client sends it to a server-side API route, and the results are rendered in-page without navigation.
+The app is a single-page Next.js application. The user enters a URL, the client sends it to a server-side API route, and the results render in-page (in a tabbed report) without navigation.
 
 ```
 User enters URL
       |
       v
-POST /api/analyze  (Next.js API route, runs server-side)
+POST /api/analyze  (Next.js route handler, runs server-side on Node)
       |
-      +---> Google PageSpeed Insights API (mobile)
-      |         |
-      +---> Google PageSpeed Insights API (desktop)
-      |         |
-      |    (parallel requests, awaited together)
-      |         |
-      +---> Hugging Face Inference API (Mistral 7B)
-      |         |
-      v         v
-   Response: scores, vitals, screenshots, issues, AI summary
+      +---> Google PageSpeed Insights API (mobile)   ┐
+      +---> Google PageSpeed Insights API (desktop)  ┘ parallel, awaited together
+      |
+      +---> Compute overall weighted score + letter grade
+      +---> Rate Core Web Vitals against Google thresholds
+      +---> Collect performance / SEO / accessibility issues
+      |
+      +---> Groq (llama-3.3-70b-versatile) → JSON action plan
+      |         (falls back to a heuristic plan if no key / failure)
+      v
+   Response: overall, grade, scores, rated vitals, screenshots, issues, ai{}
       |
       v
-Client renders ResultsDisplay component
+Client renders ResultsDisplay (tabbed: Overview / Vitals / Issues / Screenshots)
 ```
 
 ---
 
 ## API Route: /api/analyze
 
-**File:** `src/app/api/analyze/route.js`
+**File:** `src/app/api/analyze/route.js` · `runtime = 'nodejs'`, `maxDuration = 60`
 
-This is the only server-side endpoint. It accepts a POST request with a JSON body containing a `url` field.
+The only server-side endpoint. Accepts `POST` with `{ url, aiAnalysis }`.
 
 ### Processing steps
 
-1. **Validation** -- Checks that a URL was provided
-2. **PageSpeed requests** -- Fires two parallel requests to the Google PageSpeed Insights API:
-   - Mobile strategy (performance, SEO, best-practices categories)
-   - Desktop strategy (same categories)
-3. **Data extraction** -- From the Lighthouse results, extracts:
-   - Category scores (performance, SEO, best practices) as 0-100 integers
-   - Core Web Vitals display values (LCP, CLS, TBT, FCP)
-   - Final screenshots for both mobile and desktop (base64 data URIs)
-   - Performance opportunities sorted by potential time savings (top 4)
-   - SEO audit failures (top 4), or wins if none are failing
-4. **AI summary** -- Sends a prompt to Hugging Face with the scores and top issues, requesting a two-sentence strategic summary focused on the Halifax market
-5. **Fallback** -- If the AI call fails or no key is configured, generates a templated summary from the score data
-6. **Response** -- Returns a JSON object with all extracted data
+1. **Validation & SSRF guard** — normalizes the URL, allows only http/https, and blocks localhost, `.local`, and private/loopback IP ranges.
+2. **PageSpeed requests** — two parallel requests (mobile + desktop) for the performance, SEO, best-practices, and accessibility categories, each with a 28s abort timeout.
+3. **Data extraction** — category scores (0–100), Core Web Vitals (display value + numeric value + good/needs-improvement/poor rating), final screenshots, and the top issues per category.
+4. **Overall grade** — a weighted blend (mobile 30%, SEO 30%, accessibility 15%, desktop 15%, best practices 10%) mapped to an A–F letter.
+5. **AI action plan** — sends the structured context to Groq and requests strict JSON: `verdict`, `summary`, `businessImpact`, and `quickWins[]` (each with `impact` high/medium/low).
+6. **Fallback** — if Groq is unavailable, a rule-based `templateAnalysis` returns the same shape so the UI is identical.
+7. **Response** — one JSON object plus a `meta` block (`analyzedAt`, `durationMs`, `aiSource`).
 
 ### Response shape
 
 ```json
 {
   "url": "https://example.com",
-  "scores": {
-    "mobile": 72,
-    "desktop": 91,
-    "seo": 85,
-    "bestPractices": 95
-  },
+  "host": "example.com",
+  "overall": 78,
+  "grade": "C",
+  "scores": { "mobile": 72, "desktop": 91, "seo": 85, "bestPractices": 95, "accessibility": 88 },
   "vitals": {
-    "lcp": "2.4 s",
-    "cls": "0.05",
-    "tbt": "150 ms",
-    "fcp": "1.2 s"
+    "lcp": { "value": "2.4 s", "numeric": 2400, "rating": "good" },
+    "cls": { "value": "0.05", "numeric": 0.05, "rating": "good" }
   },
   "mobileScreenshot": "data:image/jpeg;base64,...",
   "desktopScreenshot": "data:image/jpeg;base64,...",
-  "performanceIssues": [
-    {
-      "title": "Reduce unused JavaScript",
-      "saving": "1.2 s",
-      "description": "Remove unused JavaScript to reduce bytes consumed by network activity."
-    }
-  ],
-  "seoIssues": [
-    {
-      "title": "Document does not have a meta description",
-      "description": "Meta descriptions may be included in search results to summarize page content."
-    }
-  ],
-  "aiSummary": "Your 72 mobile score means Halifax customers on Bell or Rogers connections..."
+  "performanceIssues": [{ "title": "Reduce unused JavaScript", "saving": "1.2 s", "description": "..." }],
+  "seoIssues": [{ "title": "Document does not have a meta description", "description": "..." }],
+  "accessibilityIssues": [{ "title": "Background and foreground colors...", "description": "..." }],
+  "ai": {
+    "verdict": "Fast desktop, sluggish mobile",
+    "summary": "example.com scores 72/100 on mobile...",
+    "businessImpact": "Slow mobile loads quietly reduce calls from local search.",
+    "quickWins": [{ "title": "Compress the hero image", "impact": "high", "detail": "..." }],
+    "source": "groq"
+  },
+  "meta": { "analyzedAt": "2026-01-01T00:00:00.000Z", "durationMs": 31200, "aiSource": "groq" }
 }
 ```
 
@@ -93,56 +81,45 @@ This is the only server-side endpoint. It accepts a POST request with a JSON bod
 
 ## Client-Side Components
 
-### Page (page.js)
-
-The root page manages a single piece of state: the audit result. When `AuditForm` returns data, the result is stored and `ResultsDisplay` renders below with a smooth scroll.
+### page.js
+Root page. Holds the audit result in state, renders the nav, ambient `aurora` background, all sections, and the footer. When `AuditForm` returns data, it stores the result and smooth-scrolls to `#results`.
 
 ### AuditHero
-
-Static hero section. Headline, subheadline, and a link to the services site.
+Animated hero — gradient headline, live status pill, feature chips, trust stats, and parallax on scroll.
 
 ### AuditForm
-
-Handles URL input, validation (auto-prepends `https://`), and the fetch call to `/api/analyze`. Shows a rotating status message during the 10-15 second analysis window.
+URL input with example domains, a recent-audits list (localStorage), an AI-plan toggle, and a staged progress bar with rotating status messages during the run.
 
 ### ResultsDisplay
+The tabbed report:
+- **Overview** — animated overall grade badge, five category gauges (animated SVG rings), AI summary, business impact, and prioritized quick wins.
+- **Core Web Vitals** — each metric colour-coded against Google's thresholds.
+- **Issues** — filterable performance / SEO / accessibility lists.
+- **Screenshots** — mobile and desktop renders.
+Includes Share (Web Share API / clipboard) and a JSON report download.
 
-Renders the full audit report:
-- Mobile and desktop screenshots side by side
-- Score grid (mobile, LCP, SEO, best practices)
-- AI summary in a full-width dark block
-- Performance issues list with savings values
-- SEO issues list
-- CTA to scroll to the contact section
+### Shared UI (`src/components/ui/`)
+- `ScoreGauge` — animated circular score dial.
+- `CountUp` — count-up number animation, reduced-motion aware.
 
-### AboutSection
-
-Static list of service capabilities.
-
-### BusinessFAQ
-
-Three FAQ items about local SEO, targeting common questions from Halifax business owners.
-
-### ContactSection
-
-Form powered by Formspree. Collects name, business, website, email, and message. Shows a success state after submission.
+### AboutSection / BusinessFAQ / ContactSection
+"How it works" + feature grid, an accordion FAQ, and a Formspree-powered contact form.
 
 ---
 
 ## Styling
 
-- Tailwind CSS 4 with a custom theme defined in `globals.css`
-- Color palette is intentionally minimal: white, stone grays, black
-- Typography uses Inter for body and EB Garamond (serif) for headings
-- A `.mono-label` utility class provides the monospace uppercase label style used throughout
+- Tailwind CSS 4 with a custom theme in `globals.css` (brand teal→blue→indigo accent, glass surfaces, aurora glows, grid texture).
+- Custom utilities: `glass`, `accent-gradient`, `text-gradient`, `container-app`, plus `aurora`, `grid-bg`, and `shimmer` helpers.
+- Inter throughout; respects `prefers-reduced-motion`.
 
 ---
 
 ## Third-Party Services
 
-| Service                  | Purpose                     | Cost     |
-|--------------------------|-----------------------------|----------|
-| Google PageSpeed Insights| Performance and SEO audits  | Free     |
-| Hugging Face Inference   | AI summary generation       | Free     |
-| Formspree                | Contact form submissions    | Free     |
-| Netlify                  | Hosting and CDN             | Free     |
+| Service                   | Purpose                          | Cost |
+|---------------------------|----------------------------------|------|
+| Google PageSpeed Insights | Performance, SEO, a11y audits    | Free |
+| Groq (Llama 3.3 70B)      | AI action-plan generation        | Free |
+| Formspree                 | Contact form submissions         | Free |
+| Vercel                    | Hosting, CDN, serverless funcs   | Free |

@@ -1,332 +1,407 @@
 'use client';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Zap,
-  Gauge,
-  Search,
-  ShieldCheck,
-  Accessibility,
-  Smartphone,
-  Monitor,
-  Camera,
-  AlignLeft,
-  TrendingUp,
-  Clock,
-  Eye,
-  Share2,
-  Sparkles,
+  Search, ShieldCheck, Accessibility, Smartphone, Monitor, Camera, Zap, Clock, Eye,
+  Gauge, TrendingUp, Share2, Download, Sparkles, Check, ArrowUpRight, Layers, Activity, ListChecks,
 } from 'lucide-react';
+import { scoreHex, scoreTone, scoreLabel, ratingMeta } from '@/lib/utils';
+import ScoreGauge from '@/components/ui/ScoreGauge';
+import CountUp from '@/components/ui/CountUp';
 
-function scoreColor(n) {
-  if (n == null) return 'rgb(113 113 122)';
-  if (n >= 90) return 'rgb(34 197 94)';
-  if (n >= 50) return 'rgb(250 204 21)';
-  return 'rgb(239 68 68)';
-}
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: Layers },
+  { id: 'vitals', label: 'Core Web Vitals', icon: Activity },
+  { id: 'issues', label: 'Issues', icon: ListChecks },
+  { id: 'screens', label: 'Screenshots', icon: Camera },
+];
 
-function scoreTone(n) {
-  if (n == null) return 'text-zinc-500';
-  if (n >= 90) return 'text-green-400';
-  if (n >= 50) return 'text-yellow-400';
-  return 'text-red-400';
-}
+const IMPACT = {
+  high: 'border-red-500/30 bg-red-500/10 text-red-300',
+  medium: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+  low: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
+};
 
-function AnimatedScore({ value, className }) {
-  const n = typeof value === 'number' ? value : null;
-  return (
-    <motion.span
-      className={className}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-    >
-      {n == null ? '—' : n}
-    </motion.span>
-  );
-}
-
-function ScoreRing({ value, label, icon: Icon, delay = 0 }) {
-  const n = typeof value === 'number' ? value : null;
-  const pct = n == null ? 0 : Math.min(100, Math.max(0, n));
-  const color = scoreColor(n);
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.5, type: 'spring', stiffness: 120 }}
-      className="flex flex-col items-center gap-4 rounded-lg border border-white/[0.08] bg-[#111] p-6 text-center"
-    >
-      <div
-        className="relative flex h-28 w-28 items-center justify-center rounded-full"
-        style={{
-          background: `conic-gradient(${color} ${pct * 3.6}deg, rgba(63, 63, 70, 0.2) 0)`,
-        }}
-      >
-        <div className="absolute inset-1.5 flex flex-col items-center justify-center rounded-full bg-[#111]">
-          <AnimatedScore value={value} className={`text-3xl font-light tabular-nums ${scoreTone(n)}`} />
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {Icon && <Icon className="h-3.5 w-3.5 text-zinc-500" />}
-        <p className="text-xs text-zinc-500">{label}</p>
-      </div>
-    </motion.div>
-  );
-}
-
-function VitalCard({ label, hint, value, icon: Icon, delay = 0 }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.4 }}
-      className="flex items-start gap-4 rounded-lg border border-white/[0.08] bg-[#111] p-5"
-    >
-      <div className="rounded-md border border-white/[0.08] bg-white/[0.03] p-2 text-zinc-400">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div>
-        <p className="text-[10px] uppercase tracking-wider text-zinc-600">{hint}</p>
-        <p className="text-lg font-medium text-white">{label}</p>
-        <p className="mt-1 text-2xl font-light tabular-nums text-zinc-200">{value ?? '—'}</p>
-      </div>
-    </motion.div>
-  );
-}
-
-function IssueTag({ type }) {
-  const colors = {
-    performance: 'border-yellow-500/20 bg-yellow-500/5 text-yellow-400',
-    seo: 'border-blue-500/20 bg-blue-500/5 text-blue-400',
-    accessibility: 'border-purple-500/20 bg-purple-500/5 text-purple-400',
-  };
-  return (
-    <span
-      className={`rounded border px-2 py-0.5 text-[10px] ${colors[type] || 'border-white/[0.08] bg-white/[0.03] text-zinc-400'}`}
-    >
-      {type.charAt(0).toUpperCase() + type.slice(1)}
-    </span>
-  );
-}
+const VITAL_DEFS = [
+  { key: 'lcp', label: 'LCP', name: 'Largest Contentful Paint', icon: Zap },
+  { key: 'cls', label: 'CLS', name: 'Cumulative Layout Shift', icon: Eye },
+  { key: 'tbt', label: 'TBT', name: 'Total Blocking Time', icon: Clock },
+  { key: 'fcp', label: 'FCP', name: 'First Contentful Paint', icon: Gauge },
+  { key: 'si', label: 'SI', name: 'Speed Index', icon: TrendingUp },
+  { key: 'tti', label: 'TTI', name: 'Time to Interactive', icon: Gauge },
+];
 
 export default function ResultsDisplay({ data }) {
+  const [tab, setTab] = useState('overview');
+  const [copied, setCopied] = useState(false);
   if (!data) return null;
 
-  const host = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-  const m = typeof data.scores?.mobile === 'number' ? data.scores.mobile : null;
-  const d = typeof data.scores?.desktop === 'number' ? data.scores.desktop : null;
-  const seo = data.scores?.seo ?? null;
-  const bp = data.scores?.bestPractices ?? null;
-  const a11y = data.scores?.accessibility ?? null;
-
-  const handleShare = () => {
-    const line =
-      m != null
-        ? `HFX SEO audit: ${host} — mobile ${m}/100${d != null ? `, desktop ${d}/100` : ''}, SEO ${seo}/100.`
-        : `HFX SEO audit completed for ${host}.`;
-    if (navigator.share) {
-      navigator.share({ title: 'HFX SEO audit', text: line, url: 'https://hfxseo.ca' });
-    } else {
-      navigator.clipboard.writeText(line);
-    }
-  };
-
+  const host = data.host || data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const { overall, grade, scores, vitals, ai } = data;
   const perfList = data.performanceIssues || [];
   const seoList = data.seoIssues || [];
   const a11yList = data.accessibilityIssues || [];
-  const allIssues = [...perfList, ...seoList, ...a11yList];
+
+  const handleShare = async () => {
+    const line = `HFX SEO audit — ${host}: overall ${overall}/100 (grade ${grade}), mobile ${scores.mobile}/100, SEO ${scores.seo}/100. https://hfxseo.ca`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'HFX SEO audit', text: line, url: 'https://hfxseo.ca' });
+        return;
+      } catch {
+        /* fall through to clipboard */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(line);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `hfxseo-${host}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   return (
-    <div className="relative mx-auto max-w-6xl px-6 pb-32 pt-8 md:pt-12" id="results">
+    <div className="relative mx-auto max-w-6xl scroll-mt-24 px-6 pb-28 pt-10" id="results">
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-16 flex flex-col gap-6 border-l-2 border-zinc-700 pl-6 md:flex-row md:items-end md:justify-between md:pl-8"
+        className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
       >
-        <div>
-          <p className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Results</p>
-          <h2 className="mb-2 break-words text-3xl font-light tracking-tight text-white sm:text-4xl md:text-5xl">
-            {host}
-          </h2>
-          <p className="max-w-lg text-sm text-zinc-500">
-            Lighthouse lab data — mobile and desktop runs in parallel.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleShare}
-          aria-label="Share audit results"
-          className="flex items-center gap-2 self-start rounded-md border border-white/10 px-5 py-2.5 text-xs text-zinc-500 transition-colors hover:border-white/15 hover:text-zinc-300"
-        >
-          <Share2 className="h-3.5 w-3.5" />
-          Share results
-        </button>
-      </motion.div>
-
-      <div className="mb-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <ScoreRing value={m} label="Mobile" icon={Smartphone} delay={0} />
-        <ScoreRing value={d} label="Desktop" icon={Monitor} delay={0.06} />
-        <ScoreRing value={seo} label="SEO" icon={Search} delay={0.12} />
-        <ScoreRing value={bp} label="Best practices" icon={ShieldCheck} delay={0.18} />
-        <ScoreRing value={a11y} label="Accessibility" icon={Accessibility} delay={0.24} />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className="mb-4"
-      >
-        <h3 className="mb-1 text-xs uppercase tracking-wider text-zinc-500">Core Web Vitals</h3>
-        <p className="text-xs text-zinc-600">Lab measurements from Lighthouse mobile run</p>
-      </motion.div>
-      <div className="mb-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <VitalCard label="LCP" hint="Largest Contentful Paint" value={data.vitals?.lcp} icon={Zap} delay={0} />
-        <VitalCard label="CLS" hint="Cumulative Layout Shift" value={data.vitals?.cls} icon={Eye} delay={0.06} />
-        <VitalCard label="TBT" hint="Total Blocking Time" value={data.vitals?.tbt} icon={Clock} delay={0.12} />
-        <VitalCard label="FCP" hint="First Contentful Paint" value={data.vitals?.fcp} icon={Gauge} delay={0.18} />
-        <VitalCard label="SI" hint="Speed Index" value={data.vitals?.si} icon={TrendingUp} delay={0.24} />
-        <VitalCard label="TTI" hint="Time to Interactive" value={data.vitals?.tti} icon={Gauge} delay={0.3} />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-        className="mb-16 rounded-lg border border-white/[0.08] bg-[#111] p-6 sm:p-8 md:p-10"
-      >
-        <div className="mb-4 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-[#d4a27f]" />
-          <h3 className="text-xl font-light text-white">AI Analysis</h3>
-          <span className="ml-auto flex items-center gap-1.5 rounded border border-[#d4a27f]/20 bg-[#d4a27f]/5 px-2.5 py-1 text-[10px] text-[#d4a27f]">
-            Powered by Claude
-          </span>
-        </div>
-        <p className="text-base leading-relaxed text-zinc-400 sm:text-lg">{data.aiSummary}</p>
-      </motion.div>
-
-      <div className="mb-20 grid gap-10 md:grid-cols-2">
-        <ScreenshotPanel
-          label="Mobile"
-          icon={Smartphone}
-          screenshot={data.mobileScreenshot}
-          host={host}
-          aspect="aspect-[9/16]"
-        />
-        <ScreenshotPanel
-          label="Desktop"
-          icon={Monitor}
-          screenshot={data.desktopScreenshot}
-          host={host}
-          aspect="aspect-video"
-          fallback={d == null ? 'Desktop pass did not finish. Retry or check API quota.' : null}
-        />
-      </div>
-
-      <div className="mb-24">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-3 flex items-end justify-between"
-        >
-          <h3 className="text-3xl font-light text-white md:text-4xl">Prioritized issues</h3>
-          <div className="flex gap-4 text-xs text-zinc-600">
-            {perfList.length > 0 && <span>{perfList.length} perf</span>}
-            {seoList.length > 0 && <span>{seoList.length} SEO</span>}
-            {a11yList.length > 0 && <span>{a11yList.length} a11y</span>}
+        <div className="flex items-center gap-5">
+          <GradeBadge grade={grade} value={overall} />
+          <div>
+            <p className="mb-1 text-xs uppercase tracking-wider text-zinc-500">Audit results</p>
+            <h2 className="break-all text-2xl font-semibold tracking-tight text-white sm:text-3xl">{host}</h2>
+            {ai?.verdict && <p className="mt-1 text-sm text-accent">{ai.verdict}</p>}
           </div>
-        </motion.div>
-        <p className="mb-10 max-w-xl text-zinc-500">
-          {allIssues.length === 0
-            ? 'No major issues flagged in this run.'
-            : 'Ordered by category and estimated impact. Fix performance items first for the biggest gains.'}
-        </p>
-        <ul className="space-y-3">
-          {allIssues.map((issue, i) => (
-            <motion.li
-              key={`${issue.title}-${i}`}
-              initial={{ opacity: 0, x: -12 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: '-20px' }}
-              transition={{ delay: 0.04 * i, duration: 0.35 }}
-              className="rounded-lg border border-white/[0.08] bg-[#111] p-6 transition-colors hover:border-white/[0.12]"
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleShare}
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Share2 className="h-3.5 w-3.5" />}
+            {copied ? 'Copied' : 'Share'}
+          </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/[0.04]"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Report
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Tabs */}
+      <div className="mb-10 flex gap-1 overflow-x-auto rounded-2xl border border-white/[0.08] bg-card/60 p-1.5">
+        {TABS.map((t) => {
+          const active = tab === t.id;
+          const count = t.id === 'issues' ? perfList.length + seoList.length + a11yList.length : null;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className={`relative flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                active ? 'text-zinc-950' : 'text-zinc-400 hover:text-white'
+              }`}
             >
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <IssueTag type={issue.type} />
-                {issue.saving && (
-                  <span className="text-xs text-zinc-500">{issue.saving}</span>
+              {active && (
+                <motion.span layoutId="tab-pill" className="absolute inset-0 rounded-xl accent-gradient" transition={{ type: 'spring', stiffness: 300, damping: 30 }} />
+              )}
+              <span className="relative flex items-center gap-2">
+                <t.icon className="h-4 w-4" aria-hidden />
+                {t.label}
+                {count != null && count > 0 && (
+                  <span className={`rounded-full px-1.5 text-[10px] ${active ? 'bg-black/20' : 'bg-white/10'}`}>{count}</span>
                 )}
-              </div>
-              <h4 className="mb-2 text-lg font-medium text-zinc-100">{issue.title}</h4>
-              <p className="text-sm leading-relaxed text-zinc-500">{issue.description}</p>
-            </motion.li>
-          ))}
-        </ul>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+        >
+          {tab === 'overview' && <Overview data={data} host={host} />}
+          {tab === 'vitals' && <Vitals vitals={vitals} />}
+          {tab === 'issues' && <Issues perfList={perfList} seoList={seoList} a11yList={a11yList} />}
+          {tab === 'screens' && <Screens data={data} host={host} />}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* CTA */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="border-t border-white/[0.06] pt-16 text-center"
+        className="mt-20 overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-transparent p-10 text-center"
       >
-        <h3 className="mb-4 text-3xl font-light text-white md:text-5xl">Need these fixed?</h3>
-        <p className="mx-auto mb-10 max-w-xl text-zinc-500">
-          Send a note with your URL and goals. I work with Halifax and Nova Scotia businesses.
+        <h3 className="mb-3 text-2xl font-semibold text-white sm:text-3xl">Want these fixed for you?</h3>
+        <p className="mx-auto mb-8 max-w-xl text-zinc-400">
+          I help Halifax &amp; Nova Scotia businesses turn these scores into faster sites and more
+          leads. Send your URL and goals.
         </p>
         <button
           type="button"
           onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-          className="rounded-md bg-zinc-100 px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-zinc-950 transition-colors hover:bg-white sm:px-10 sm:py-4"
+          className="inline-flex items-center gap-2 rounded-xl accent-gradient px-8 py-3.5 text-sm font-semibold text-zinc-950 transition-transform hover:-translate-y-0.5"
         >
-          Contact
+          Get in touch <ArrowUpRight className="h-4 w-4" />
         </button>
       </motion.div>
     </div>
   );
 }
 
-function ScreenshotPanel({ label, icon: Icon, screenshot, host, aspect, fallback }) {
+/* ----------------------------- Sub-views ----------------------------- */
+
+function GradeBadge({ grade, value }) {
+  const color = scoreHex(value);
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 16 }}
+      className="relative flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl border"
+      style={{ borderColor: `${color}55`, background: `${color}12` }}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <span className="flex items-center gap-2 text-xs text-zinc-600">
-          <Icon className="h-3.5 w-3.5" />
-          {label}
-        </span>
-        <span className="text-[10px] text-zinc-700">Lighthouse</span>
+      <span className="text-3xl font-bold leading-none" style={{ color }}>{grade}</span>
+      <span className="mt-1 text-[10px] text-zinc-500">
+        <CountUp value={value} duration={900} />/100
+      </span>
+    </motion.div>
+  );
+}
+
+function Overview({ data, host }) {
+  const { scores, ai } = data;
+  return (
+    <div className="space-y-12">
+      {/* Score gauges */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <ScoreGauge value={scores.mobile} label="Mobile" icon={Smartphone} delay={0} />
+        <ScoreGauge value={scores.desktop} label="Desktop" icon={Monitor} delay={0.06} />
+        <ScoreGauge value={scores.seo} label="SEO" icon={Search} delay={0.12} />
+        <ScoreGauge value={scores.bestPractices} label="Best practices" icon={ShieldCheck} delay={0.18} />
+        <ScoreGauge value={scores.accessibility} label="Accessibility" icon={Accessibility} delay={0.24} />
       </div>
-      <div
-        className={`${aspect} max-w-sm overflow-hidden rounded-lg border border-white/[0.06] bg-zinc-950`}
-      >
+
+      {/* AI analysis */}
+      {ai && (
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className="glass rounded-2xl p-7 lg:col-span-3">
+            <div className="mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-accent" />
+              <h3 className="text-lg font-semibold text-white">AI analysis</h3>
+              <span className="ml-auto rounded-full border border-accent/20 bg-accent/5 px-2.5 py-1 text-[10px] text-accent">
+                {ai.source === 'groq' ? 'Powered by Groq' : 'Heuristic summary'}
+              </span>
+            </div>
+            <p className="text-base leading-relaxed text-zinc-300">{ai.summary}</p>
+            {ai.businessImpact && (
+              <div className="mt-5 flex gap-3 rounded-xl border border-white/[0.06] bg-black/20 p-4">
+                <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <p className="text-sm leading-relaxed text-zinc-400">{ai.businessImpact}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-white/[0.08] bg-card/60 p-7 lg:col-span-2">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Quick wins</h3>
+            <ul className="space-y-4">
+              {(ai.quickWins || []).map((w, i) => (
+                <motion.li
+                  key={`${w.title}-${i}`}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className="flex gap-3"
+                >
+                  <span className={`mt-0.5 inline-flex h-fit shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-medium uppercase ${IMPACT[w.impact] || IMPACT.medium}`}>
+                    {w.impact}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-zinc-100">{w.title}</p>
+                    {w.detail && <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">{w.detail}</p>}
+                  </div>
+                </motion.li>
+              ))}
+              {(!ai.quickWins || ai.quickWins.length === 0) && (
+                <li className="text-sm text-zinc-500">No critical fixes flagged — nicely done, {host}.</li>
+              )}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Vitals({ vitals }) {
+  return (
+    <div>
+      <p className="mb-6 text-sm text-zinc-500">
+        Lab measurements from the Lighthouse mobile run, rated against Google&apos;s Core Web Vitals thresholds.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {VITAL_DEFS.map((v, i) => {
+          const d = vitals?.[v.key] || {};
+          const meta = ratingMeta[d.rating] || ratingMeta.unknown;
+          return (
+            <motion.div
+              key={v.key}
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className={`rounded-2xl border p-5 ${meta.ring}`}
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-zinc-300">
+                  <v.icon className="h-4 w-4" />
+                  <span className="text-sm font-semibold">{v.label}</span>
+                </div>
+                <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${meta.tone}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+                  {meta.label}
+                </span>
+              </div>
+              <p className={`text-3xl font-semibold tabular-nums ${meta.tone}`}>{d.value ?? '—'}</p>
+              <p className="mt-1 text-xs text-zinc-600">{v.name}</p>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Issues({ perfList, seoList, a11yList }) {
+  const groups = [
+    { id: 'performance', label: 'Performance', items: perfList, tone: 'text-amber-400', icon: Zap },
+    { id: 'seo', label: 'SEO', items: seoList, tone: 'text-sky-400', icon: Search },
+    { id: 'accessibility', label: 'Accessibility', items: a11yList, tone: 'text-violet-400', icon: Accessibility },
+  ];
+  const [filter, setFilter] = useState('all');
+  const total = perfList.length + seoList.length + a11yList.length;
+  const visible = filter === 'all' ? groups : groups.filter((g) => g.id === filter);
+
+  if (total === 0) {
+    return (
+      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-10 text-center">
+        <Check className="mx-auto mb-3 h-8 w-8 text-emerald-400" />
+        <p className="text-lg text-emerald-300">No major issues flagged in this run.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-6 flex flex-wrap gap-2">
+        {[{ id: 'all', label: `All (${total})` }, ...groups.filter((g) => g.items.length).map((g) => ({ id: g.id, label: `${g.label} (${g.items.length})` }))].map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => setFilter(f.id)}
+            className={`rounded-full border px-4 py-1.5 text-xs transition-colors ${
+              filter === f.id ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/10 text-zinc-400 hover:text-white'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-8">
+        {visible.map((g) =>
+          g.items.length ? (
+            <div key={g.id}>
+              <h3 className={`mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider ${g.tone}`}>
+                <g.icon className="h-4 w-4" /> {g.label}
+              </h3>
+              <ul className="space-y-3">
+                {g.items.map((issue, i) => (
+                  <motion.li
+                    key={`${issue.title}-${i}`}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, margin: '-20px' }}
+                    transition={{ delay: i * 0.03 }}
+                    className="rounded-2xl border border-white/[0.08] bg-card/60 p-5 transition-colors hover:border-white/[0.14]"
+                  >
+                    <div className="mb-1.5 flex items-start justify-between gap-3">
+                      <h4 className="font-medium text-zinc-100">{issue.title}</h4>
+                      {issue.saving && <span className="shrink-0 rounded bg-white/5 px-2 py-0.5 text-xs text-zinc-400">{issue.saving}</span>}
+                    </div>
+                    <p className="text-sm leading-relaxed text-zinc-500">{issue.description}</p>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+          ) : null,
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Screens({ data, host }) {
+  return (
+    <div className="grid gap-8 md:grid-cols-2">
+      <ScreenshotPanel label="Mobile" icon={Smartphone} screenshot={data.mobileScreenshot} host={host} aspect="aspect-[9/16]" maxW="max-w-xs" />
+      <ScreenshotPanel
+        label="Desktop"
+        icon={Monitor}
+        screenshot={data.desktopScreenshot}
+        host={host}
+        aspect="aspect-video"
+        maxW="max-w-xl"
+        fallback={data.scores.desktop == null ? 'Desktop pass did not finish. Retry or check API quota.' : null}
+      />
+    </div>
+  );
+}
+
+function ScreenshotPanel({ label, icon: Icon, screenshot, host, aspect, maxW, fallback }) {
+  return (
+    <div>
+      <div className="mb-3 flex items-center gap-2 text-xs text-zinc-500">
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </div>
+      <div className={`${aspect} ${maxW} overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-950`}>
         {screenshot ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={screenshot}
-            alt={`${label} render of ${host}`}
-            className="h-full w-full object-cover object-top"
-          />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={screenshot} alt={`${label} render of ${host}`} className="h-full w-full object-cover object-top" />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
             <Camera className="h-8 w-8 text-zinc-700" />
-            <p className="max-w-xs text-xs text-zinc-600">
-              {fallback || 'No screenshot in this response.'}
-            </p>
+            <p className="max-w-xs text-xs text-zinc-600">{fallback || 'No screenshot in this response.'}</p>
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

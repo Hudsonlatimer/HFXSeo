@@ -1,87 +1,131 @@
 'use client';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
-import Image from 'next/image';
+import { ArrowRight, Gauge, Search, Sparkles, Zap } from 'lucide-react';
+
+const chips = [
+  { icon: Gauge, label: 'Core Web Vitals' },
+  { icon: Search, label: 'SEO signals' },
+  { icon: Zap, label: 'Mobile + desktop' },
+  { icon: Sparkles, label: 'AI quick wins' },
+];
+
+const stats = [
+  { value: '5', label: 'category scores' },
+  { value: '~30s', label: 'per audit' },
+  { value: '$0', label: 'no sign-up' },
+];
 
 export default function AuditHero() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '24%']);
+  const opacity = useTransform(scrollYProgress, [0, 0.85], [1, 0]);
 
   return (
     <section
       ref={ref}
-      className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden px-4 pb-24 pt-28 sm:px-6 sm:pt-32 md:pb-32"
+      className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden px-4 pb-24 pt-32 sm:px-6"
       aria-labelledby="hero-heading"
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0b]/50 to-[#0a0a0b]" />
+      <div className="grid-bg pointer-events-none absolute inset-0" aria-hidden />
 
-      <motion.div className="relative z-10 mx-auto max-w-5xl text-center" style={{ y, opacity }}>
-        <motion.p
+      <motion.div className="relative z-10 mx-auto max-w-4xl text-center" style={{ y, opacity }}>
+        <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-8 text-xs tracking-wide text-zinc-500"
+          transition={{ duration: 0.6 }}
+          className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs text-zinc-400"
         >
-          Halifax Regional Municipality · Nova Scotia · Google Lighthouse
-        </motion.p>
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+          </span>
+          Halifax · Dartmouth · Bedford · all of HRM
+        </motion.div>
+
         <motion.h1
           id="hero-heading"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="mb-8 text-balance text-3xl font-light leading-[1.08] tracking-tight text-white sm:text-5xl md:text-7xl"
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="mb-7 text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
         >
-          Free Halifax SEO &amp; speed audit
+          <span className="text-gradient">See exactly why</span>
           <br />
-          <span className="text-zinc-400">for your website</span>
+          your website loses leads
         </motion.h1>
+
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.35 }}
-          className="mx-auto mb-12 max-w-2xl text-base leading-relaxed text-zinc-500 sm:text-lg md:text-xl"
+          transition={{ duration: 0.7, delay: 0.25 }}
+          className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg"
         >
-          Instant Lighthouse scores for Halifax, Dartmouth, Bedford, and the rest of HRM — mobile
-          and desktop performance, Core Web Vitals, screenshots, and prioritized issues.
+          A free, instant SEO &amp; speed audit for Nova Scotia businesses. Real Google Lighthouse
+          scores, Core Web Vitals, screenshots, and an AI action plan — in about 30 seconds.
         </motion.p>
+
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="flex flex-col items-center gap-3"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mb-10 flex flex-col items-center gap-4"
         >
           <a
             href="#audit-form"
-            className="rounded-md bg-zinc-100 px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-zinc-950 transition-colors hover:bg-white"
+            className="group inline-flex items-center gap-2.5 rounded-xl accent-gradient px-8 py-4 text-sm font-semibold text-zinc-950 shadow-[0_8px_40px_-8px_rgba(45,212,191,0.5)] transition-transform hover:-translate-y-0.5"
           >
-            Run free audit
+            Run my free audit
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
           </a>
-          <motion.div
-            aria-hidden
-            className="mt-6 h-16 w-px bg-gradient-to-b from-zinc-500/40 to-transparent"
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ delay: 0.9, duration: 0.6 }}
-            style={{ transformOrigin: 'top' }}
-          />
+
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+            {chips.map(({ icon: Icon, label }, i) => (
+              <motion.span
+                key={label}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + i * 0.07 }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs text-zinc-400"
+              >
+                <Icon className="h-3.5 w-3.5 text-accent" aria-hidden />
+                {label}
+              </motion.span>
+            ))}
+          </div>
         </motion.div>
+
+        <motion.dl
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
+          className="mx-auto flex max-w-md items-center justify-center divide-x divide-white/10"
+        >
+          {stats.map((s) => (
+            <div key={s.label} className="px-6 text-center">
+              <dt className="text-2xl font-semibold text-white tabular-nums">{s.value}</dt>
+              <dd className="mt-0.5 text-xs text-zinc-500">{s.label}</dd>
+            </div>
+          ))}
+        </motion.dl>
       </motion.div>
 
-      <div className="relative z-[1] mx-auto mt-16 w-full max-w-6xl opacity-90 md:mt-24">
-        <div className="relative border-t border-white/[0.07] bg-gradient-to-t from-[#0a0a0b] to-transparent px-4 pt-8">
-          <Image
-            src="/halifax-skyline.svg"
-            alt="Stylized Halifax waterfront skyline illustration"
-            width={1400}
-            height={400}
-            unoptimized
-            className="h-auto w-full max-h-[min(28vh,220px)] object-contain object-bottom opacity-40 grayscale contrast-125 [mask-image:linear-gradient(to_top,black,transparent)]"
-            priority
-          />
-        </div>
-      </div>
+      <motion.a
+        href="#audit-form"
+        aria-label="Scroll to audit tool"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 sm:block"
+      >
+        <motion.span
+          className="block h-12 w-px bg-gradient-to-b from-accent/50 to-transparent"
+          animate={{ scaleY: [1, 0.5, 1], opacity: [0.7, 0.3, 0.7] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          style={{ transformOrigin: 'top' }}
+        />
+      </motion.a>
     </section>
   );
 }

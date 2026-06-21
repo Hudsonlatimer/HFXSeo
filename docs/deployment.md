@@ -1,110 +1,73 @@
 # Deployment
 
-This project is configured for Netlify using the `@netlify/plugin-nextjs` plugin. The plugin handles server-side rendering, API routes, and all Next.js-specific features automatically.
+This project is optimized for [Vercel](https://vercel.com), the platform built by the creators of Next.js. Server-side rendering, the `/api/analyze` route, image handling, and `sitemap`/`robots`/`manifest` routes all work with zero extra configuration.
 
 ---
 
 ## Prerequisites
 
-- A [Netlify](https://netlify.com) account
+- A [Vercel](https://vercel.com) account
 - This repository pushed to GitHub
 
 ---
 
-## Deploy to Netlify
+## Deploy to Vercel
 
-### Option 1: Netlify Dashboard (recommended)
+### Option 1: Vercel Dashboard (recommended)
 
-1. Log in to [app.netlify.com](https://app.netlify.com)
-2. Click "Add new site" > "Import an existing project"
-3. Select your GitHub repository
-4. Netlify auto-detects the `netlify.toml` -- no build settings to configure
-5. Click "Deploy site"
+1. Log in to [vercel.com](https://vercel.com) and click **Add New… > Project**
+2. Import your GitHub repository (`Hudsonlatimer/HFXSeo`)
+3. Vercel auto-detects Next.js — no build settings to change
+4. Add your environment variables (see below) before the first deploy
+5. Click **Deploy**
 
-### Option 2: Netlify CLI
+### Option 2: Vercel CLI
 
 ```bash
-npm install -g netlify-cli
-netlify login
-netlify init
-netlify deploy --prod
+npm install -g vercel
+vercel login
+vercel            # preview deploy
+vercel --prod     # production deploy
 ```
 
 ---
 
 ## Environment Variables
 
-After the first deploy, set your API keys in the Netlify dashboard:
+In **Project > Settings > Environment Variables**, add:
 
-1. Go to Site Settings > Environment Variables
-2. Add the following:
+| Variable            | Required | Value                  |
+|---------------------|----------|------------------------|
+| `PAGESPEED_API_KEY` | Yes      | Your Google API key    |
+| `GROQ_API_KEY`      | No       | Your Groq API key      |
 
-| Variable              | Value                    |
-|-----------------------|--------------------------|
-| `PAGESPEED_API_KEY`   | Your Google API key      |
-| `HUGGING_FACE_API_KEY`| Your Hugging Face token  |
+Redeploy after changing variables (they are injected at build/runtime, not picked up live).
 
-3. Trigger a redeploy (Deploys > Trigger Deploy > Deploy site)
+### Function duration
+
+`vercel.json` sets the `/api/analyze` function `maxDuration` to 60 seconds, since a parallel mobile + desktop Lighthouse run can take ~30–45s. On the Hobby plan, 60s is the maximum.
 
 ---
 
 ## Custom Domain (hfxseo.ca)
 
-### DNS Configuration
-
-1. In Netlify: Domain Management > Add custom domain > enter `hfxseo.ca`
-2. At your domain registrar, set the nameservers to Netlify's:
-   - `dns1.p06.nsone.net`
-   - `dns2.p06.nsone.net`
-   - `dns3.p06.nsone.net`
-   - `dns4.p06.nsone.net`
-
-   (Netlify may assign different nameservers -- check the dashboard for your specific values.)
-
-3. Alternatively, if you prefer to keep your current DNS provider, add a CNAME record:
-   - Host: `@` or blank
-   - Value: `your-site-name.netlify.app`
-
-### HTTPS
-
-Netlify provisions a free SSL certificate via Let's Encrypt automatically once DNS propagates. No action needed.
-
-### www Redirect
-
-Netlify handles `www.hfxseo.ca` -> `hfxseo.ca` redirects automatically when both domains are configured.
-
----
-
-## Build Details
-
-The `netlify.toml` specifies:
-
-```toml
-[build]
-  command = "npm run build"
-  publish = ".next"
-
-[build.environment]
-  NODE_VERSION = "20"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-```
-
-- **Build command**: Runs `next build`, producing the optimized production output
-- **Publish directory**: `.next` is used by the Netlify plugin to deploy both static and server-rendered content
-- **Node version**: Pinned to Node 20 for consistency
-- **Plugin**: `@netlify/plugin-nextjs` translates Next.js output into Netlify Functions and Edge Functions
+1. In Vercel: **Project > Settings > Domains > Add** → enter `hfxseo.ca`
+2. At your registrar, point DNS at Vercel:
+   - Apex (`hfxseo.ca`): `A` record → `76.76.21.21`
+   - `www`: `CNAME` → `cname.vercel-dns.com`
+   - (Or switch nameservers to Vercel and let it manage records.)
+3. Vercel provisions a free SSL certificate automatically once DNS propagates.
+4. Set the primary domain to `hfxseo.ca`; Vercel redirects `www` automatically.
 
 ---
 
 ## Troubleshooting
 
 **Build fails with "missing environment variable"**
-The build itself does not require API keys. They are only used at runtime by the `/api/analyze` route. If the build fails, check the build log for syntax or dependency errors.
+The build itself does not require API keys — they are only read at runtime by `/api/analyze`. Check the build log for a syntax or dependency error instead.
 
-**API route returns 500 in production**
-Verify that environment variables are set in the Netlify dashboard (not in `.env.local`, which is only for local development).
+**API route returns 500 / 504 in production**
+Verify `PAGESPEED_API_KEY` is set in Vercel. A 504 usually means Lighthouse exceeded the function timeout on a heavy page — retry or test a lighter URL.
 
-**Stale deploy after changing environment variables**
-Trigger a manual redeploy from the Netlify dashboard. Environment variable changes do not automatically trigger a new build.
+**AI plan looks generic**
+That's the heuristic fallback. Add `GROQ_API_KEY` in Vercel and redeploy to get model-generated analysis (look for the "Powered by Groq" badge on results).

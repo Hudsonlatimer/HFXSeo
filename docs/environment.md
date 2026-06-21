@@ -16,7 +16,7 @@ cp .env.example .env.local
 
 ## PAGESPEED_API_KEY
 
-**Required.** Used to query the Google PageSpeed Insights API for performance and SEO data.
+**Required.** Used to query the Google PageSpeed Insights API for performance, SEO, accessibility, and best-practices data.
 
 ### How to get one
 
@@ -36,28 +36,26 @@ cp .env.example .env.local
 
 ---
 
-## ANTHROPIC_API_KEY
+## GROQ_API_KEY
 
-**Optional.** Used to generate AI-powered strategic summaries via Claude Haiku 4.5 (cheapest Claude model).
+**Optional.** Used to generate the AI action plan (verdict, plain-English summary, business impact, and prioritized quick wins). Runs on Groq's free, extremely fast inference using `llama-3.3-70b-versatile`.
 
 ### How to get one
 
-1. Create an account at [console.anthropic.com](https://console.anthropic.com/)
-2. Go to Settings > API Keys
-3. Create a new key
-4. Copy it into your `.env.local`
+1. Create a free account at [console.groq.com](https://console.groq.com/)
+2. Go to **API Keys** and create a new key
+3. Copy it into your `.env.local`
 
 ### Fallback behavior
 
-If this key is missing or the API call fails, the app generates a templated summary from the audit scores. The user experience is still complete — the AI summary is a value-add, not a requirement.
+If this key is missing or the API call fails, the app generates a structured heuristic analysis from the audit scores — same shape (verdict, summary, quick wins), just rule-based instead of model-generated. The user experience stays complete; the AI plan is a value-add, not a requirement.
 
 ### Cost
 
-- Claude Haiku 4.5: $0.80/MTok input, $4/MTok output
-- Each audit uses ~300 input tokens + ~100 output tokens ≈ $0.0006 per audit
+Groq's free tier covers typical usage for this tool at no cost. Each audit sends ~400 input tokens and receives ~500 output tokens.
 
 ---
 
-## Production (Netlify)
+## Production (Vercel)
 
-Set these variables in **Site Settings > Environment Variables**. Do not use `.env.local` in production.
+Set both variables under **Project > Settings > Environment Variables** in the Vercel dashboard (Production, Preview, and Development as needed). Do not commit `.env.local`.

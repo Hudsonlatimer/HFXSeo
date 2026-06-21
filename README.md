@@ -1,6 +1,6 @@
 # HFX SEO Audit
 
-A free SEO and performance audit tool built for Halifax small businesses. Enter any URL and get an instant report covering mobile performance, Core Web Vitals, search visibility, and an AI-generated strategic summary.
+A free SEO and performance audit tool built for Halifax small businesses. Enter any URL and get an instant, shareable report covering mobile & desktop performance, Core Web Vitals, SEO, accessibility, screenshots, and an **AI action plan** — an overall grade plus prioritized quick wins.
 
 Live at **[hfxseo.ca](https://hfxseo.ca)**
 
@@ -8,25 +8,26 @@ Live at **[hfxseo.ca](https://hfxseo.ca)**
 
 ## What It Does
 
-- Runs parallel mobile and desktop audits via the Google PageSpeed Insights API
-- Reports performance scores, SEO scores, best practices, and Core Web Vitals (LCP, CLS, TBT, FCP)
-- Captures and displays mobile and desktop screenshots of the audited page
-- Identifies the top speed bottlenecks and SEO issues with actionable descriptions
-- Generates a two-sentence AI strategic summary using Hugging Face (Mistral 7B)
-- Includes a contact form (Formspree) for prospective clients
+- Runs **parallel mobile + desktop** audits via the Google PageSpeed Insights API (Lighthouse)
+- Reports performance, SEO, best-practices, and accessibility scores, plus a single **weighted overall score and A–F grade**
+- Rates Core Web Vitals (LCP, CLS, TBT, FCP, SI, TTI) against **Google's good / needs-work / poor thresholds**
+- Captures mobile and desktop **screenshots** of the audited page
+- Generates an **AI action plan with Groq** (Llama 3.3 70B): a verdict, plain-English summary, business impact, and prioritized **quick wins** — with a heuristic fallback if no key is set
+- Tabbed results UI (Overview / Vitals / Issues / Screenshots), animated score gauges, recent-audit history, **share + JSON report export**
+- Contact form (Formspree) for prospective clients
 
 ## Tech Stack
 
-| Layer       | Technology                          |
-|-------------|-------------------------------------|
-| Framework   | Next.js 16 (App Router)             |
-| Styling     | Tailwind CSS 4                      |
-| Animation   | Framer Motion                       |
-| Icons       | Lucide React                        |
-| Fonts       | Inter, EB Garamond (next/font)      |
-| APIs        | Google PageSpeed Insights, Hugging Face Inference |
-| Forms       | Formspree                           |
-| Hosting     | Netlify                             |
+| Layer       | Technology                                   |
+|-------------|----------------------------------------------|
+| Framework   | Next.js 16 (App Router, Turbopack)           |
+| UI / Styling| React 19, Tailwind CSS 4                     |
+| Animation   | Framer Motion                                |
+| Icons       | Lucide React                                 |
+| Fonts       | Inter (next/font)                            |
+| APIs        | Google PageSpeed Insights, Groq Inference    |
+| Forms       | Formspree                                     |
+| Hosting     | Vercel                                        |
 
 ## Quick Start
 
@@ -52,27 +53,27 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
-| Variable              | Required | Description                              |
-|-----------------------|----------|------------------------------------------|
-| `PAGESPEED_API_KEY`   | Yes      | Google PageSpeed Insights API key        |
-| `HUGGING_FACE_API_KEY`| No       | Hugging Face token for AI summaries      |
+| Variable            | Required | Description                                   |
+|---------------------|----------|-----------------------------------------------|
+| `PAGESPEED_API_KEY` | Yes      | Google PageSpeed Insights API key             |
+| `GROQ_API_KEY`      | No       | Groq API key for the AI action plan           |
 
-The app works without a Hugging Face key -- it falls back to a templated summary. Without a PageSpeed key, requests are rate-limited by Google but still functional.
+The app works without a Groq key — it falls back to a structured heuristic plan of the same shape. Without a PageSpeed key, requests use Google's shared quota (rate-limited but functional).
 
 See [docs/environment.md](docs/environment.md) for setup instructions.
 
 ## Deployment
 
-This project is configured for Netlify. See [docs/deployment.md](docs/deployment.md) for full instructions.
+This project is configured for **Vercel** (zero-config Next.js). See [docs/deployment.md](docs/deployment.md) for full instructions.
 
 **Quick deploy:**
 
 1. Push this repo to GitHub
-2. Connect the repo in Netlify
-3. Set environment variables in Netlify dashboard under Site Settings > Environment Variables
+2. Import it at [vercel.com](https://vercel.com) → it auto-detects Next.js
+3. Add `PAGESPEED_API_KEY` (and optionally `GROQ_API_KEY`) under Settings → Environment Variables
 4. Deploy
 
-The `netlify.toml` and `@netlify/plugin-nextjs` handle everything else automatically.
+`vercel.json` raises the `/api/analyze` function timeout to 60s for the parallel Lighthouse run.
 
 ## Project Structure
 
@@ -80,34 +81,36 @@ The `netlify.toml` and `@netlify/plugin-nextjs` handle everything else automatic
 HFXSeo/
   src/
     app/
-      api/analyze/route.js   -- POST endpoint that calls PageSpeed + Hugging Face
-      layout.js              -- Root layout with SEO metadata and structured data
-      page.js                -- Main page assembling all sections
-      globals.css            -- Tailwind theme and base styles
+      api/analyze/route.js   -- POST endpoint: PageSpeed + grade + Groq action plan
+      layout.js              -- Root layout, SEO metadata, structured data
+      page.js                -- Main page shell (nav, sections, footer)
+      globals.css            -- Tailwind theme, design tokens, utilities
+      manifest.js / sitemap.js / robots.js / opengraph-image.js
     components/
-      AuditHero.js           -- Hero section with headline and CTA
-      AuditForm.js           -- URL input form with loading states
-      ResultsDisplay.js      -- Full audit results with screenshots and metrics
-      AboutSection.js        -- Services/capabilities list
-      BusinessFAQ.js         -- FAQ section for local SEO questions
-      ContactSection.js      -- Contact form via Formspree
-  public/
-    robots.txt               -- Search engine directives
-  netlify.toml               -- Netlify build configuration
+      AuditHero.js           -- Animated hero
+      AuditForm.js           -- URL input, examples, history, progress
+      ResultsDisplay.js      -- Tabbed report (gauges, AI plan, vitals, issues, screenshots)
+      AboutSection.js        -- How it works + feature grid
+      BusinessFAQ.js         -- Accordion FAQ
+      ContactSection.js      -- Formspree contact form
+      ui/ScoreGauge.js       -- Animated SVG score dial
+      ui/CountUp.js          -- Count-up number animation
+    lib/utils.js             -- cn() + score/grade/rating helpers
+  public/                    -- favicon, skyline art
+  vercel.json                -- Vercel function config
   .env.example               -- Environment variable template
 ```
 
 ## Documentation
 
-- [docs/environment.md](docs/environment.md) -- Getting and configuring API keys
-- [docs/deployment.md](docs/deployment.md) -- Deploying to Netlify and custom domain setup
-- [docs/architecture.md](docs/architecture.md) -- How the audit pipeline works
+- [docs/environment.md](docs/environment.md) — Getting and configuring API keys
+- [docs/deployment.md](docs/deployment.md) — Deploying to Vercel and custom domain setup
+- [docs/architecture.md](docs/architecture.md) — How the audit pipeline works
 
 ## Author
 
 **Hudson Latimer**
-- [huddydev.ca](https://huddydev.ca)
-- [services.huddydev.ca](https://services.huddydev.ca)
+- [hudsonlatimer.com](https://hudsonlatimer.com)
 
 ## License
 

@@ -6,8 +6,8 @@ export default function manifest() {
       'Free Lighthouse audit for Halifax, Dartmouth, Bedford, and Nova Scotia businesses. Core Web Vitals, SEO checks, and screenshots.',
     start_url: '/',
     display: 'browser',
-    background_color: '#0a0a0b',
-    theme_color: '#0a0a0b',
+    background_color: '#07070a',
+    theme_color: '#07070a',
     lang: 'en-CA',
   };
 }
